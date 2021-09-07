@@ -29,18 +29,20 @@ class MREntityResolution(MRJob):
                                 str1 = value1.split(',')
                                 str2 = value2.split(',')
                                 name1, name2 = str1[1], str2[1]
-                                yield (docname1, docname2), (value1, value2, distance.get_jaro_distance(name1, name2, winkler=True, scaling=0.1))
+                                #yield (docname1, docname2), (value1, value2, distance.get_jaro_distance(name1, name2, winkler=True, scaling=0.1))
+                                yield (docname1, docname2, value1, value2), distance.get_jaro_distance(name1, name2, winkler=True, scaling=0.1)
 
-        def mapper2(self, key, values):
-                ticker1 = values[0].split(',')[2]
-                ticker2 = values[1].split(',')[2]
-                yield (key, (values, ticker1, ticker2)) 
+        def mapper2(self, key, metrics):
+                obj1, obj2 = key[2], key[3]
+                ticker1, ticker2 = obj1.split(',')[2], obj2.split(',')[2]
+                key.append(metrics)
+                yield (key), (ticker1, ticker2)
         
         def reducer2(self, key, values):
-                #ticker1 = values[1].split()[0]
-                #ticker2 = values[2].split()[0]
-                #yield (key, (values, distance.get_jaro_distance(ticker1, ticker2, winkler=True, scaling=0.1)))
-                yield type(values),1 
+                arr = list(values)
+                for ticker1, ticker2 in arr:
+                        jaro_dist = distance.get_jaro_distance(ticker1, ticker2, winkler=True, scaling=0.1)
+                        yield (key), jaro_dist 
         
         def steps(self):
         	return [
