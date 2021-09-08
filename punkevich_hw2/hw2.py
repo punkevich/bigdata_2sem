@@ -49,8 +49,8 @@ class MREntityResolution(MRJob):
                 yield (key), (price1, price2)
         
         def reducer3(self, key, values):
-                arr = list(values)
-                for price1, price2 in arr:
+                data = list(values)
+                for price1, price2 in data:
                         price_comparison = round(1 - abs(float(price1) - float(price2)))
                         yield (key), price_comparison
                         
@@ -59,12 +59,13 @@ class MREntityResolution(MRJob):
                 yield (key[:4]), (jd_name, jd_ticker, price_comparison)
                 
         def reducer4(self, key, metrics):
-                arr = list(metrics)
-                for jd_name, jd_ticker, price_comp in arr:
+                data = list(metrics)
+                for jd_name, jd_ticker, price_comp in data:
                         result = ((float(jd_name) + float(jd_name)) / 2) * jd_name
                 if (result > 0.75 and result < 1.00):
-                        
-                yield key, result               
+                        ticker = key[2].split(',')[2]
+                        dublicate_id = hashlib.md5(ticker.encode()).hexdigest()
+                        yield (key[2] + ',' + dublicate_id), 1               
         
         def steps(self):
         	return [
